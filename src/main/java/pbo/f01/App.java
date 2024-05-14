@@ -7,17 +7,20 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Scanner;
-
+import javax.persistence.*;
+import java.util.*;
+import java.util.stream.*;
 /**
  * 12S22029 - Jeremy Samosir
  * 12S22019 - Liony Tamara Lewinsky
  */
 
+
 public class App {
-    private static EntityManagerFactory emf = Persistence.createEntityManagerFactory("pbo_f01");
+    private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("persistence-unit");
 
     public static void main(String[] args) {
-        EntityManager em = emf.createEntityManager();
+        App app = new App();
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
@@ -25,74 +28,73 @@ public class App {
             if (input.equals("---")) {
                 break;
             }
-            processInput(input, em);
+
+            String[] parts = input.split("#");
+            switch (parts[0]) {
+                case "dorm-add":
+                    app.addDorm(parts[1], Integer.parseInt(parts[2]), parts[3]);
+                    break;
+                case "student-add":
+                    app.addStudent(parts[1], parts[2], Integer.parseInt(parts[3]), parts[4]);
+                    break;
+                case "assign":
+                    app.assignStudentToDorm(parts[1], parts[2]);
+                    break;
+                case "display-all":
+                    app.displayAll();
+                    break;
+            }
         }
 
-        em.close();
-        emf.close();
+        scanner.close();
     }
 
-    private static void processInput(String input, EntityManager em) {
-        if (input.startsWith("display-all")) {
-            displayAll(em);
-        } else if (input.startsWith("student-add#")) {
-            addStudent(input, em);
-        } else if (input.startsWith("dorm-add#")) {
-            addDorm(input, em);
-        } else if (input.startsWith("assign#")) {
-            assignStudent(input, em);
-        }
-    }
-
-    private static void displayAll(EntityManager em) {
-        TypedQuery<Dorm> query = em.createQuery("SELECT d FROM Dorm d ORDER BY d.name", Dorm.class);
-        List<Dorm> dorms = query.getResultList();
-
-        for (Dorm dorm : dorms) {
-            System.out.printf("%s|%s|%d|%d\n", dorm.getName(), dorm.getGender(), dorm.getCapacity(), dorm.getStudent().size());
-            dorm.getStudent().stream()
-                .sorted((s1, s2) -> s1.getName().compareTo(s2.getName()))
-                .forEach(student -> System.out.printf("%s|%s|%d\n", student.getId(), student.getName(), student.getYear()));
-        }
-    }
-
-    private static void addStudent(String input, EntityManager em) {
-        String[] parts = input.split("#");
-        Student student = new Student();
-        student.setId(parts[1]);
-        student.setName(parts[2]);
-        student.setYear(Integer.parseInt(parts[3]));
-        student.setGender(parts[4]);
-
+    public void addDorm(String name, int capacity, String gender) {
+        EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
-        em.persist(student);
-        em.getTransaction().commit();
-    }
-
-    private static void addDorm(String input, EntityManager em) {
-        String[] parts = input.split("#");
-        Dorm dorm = new Dorm();
-        dorm.setName(parts[1]);
-        dorm.setCapacity(Integer.parseInt(parts[2]));
-        dorm.setGender(parts[3]);
-
-        em.getTransaction().begin();
+        Dorm dorm = new Dorm(name, capacity, gender);
         em.persist(dorm);
         em.getTransaction().commit();
+        em.close();
     }
 
-    private static void assignStudent(String input, EntityManager em) {
-        String[] parts = input.split("#");
-        String studentId = parts[1];
-        String dormName = parts[2];
+    public void addStudent(String id, String name, int year, String gender) {
+        EntityManager em = emf.createEntityManager();
+        em.getTransaction().begin();
+        Student student = new Student(id, name, year, gender);
+        em.persist(student);
+        em.getTransaction().commit();
+        em.close();
+    }
+
+    public void assignStudentToDorm(String studentId, String dormName) {
+        EntityManager em = emf.createEntityManager();
+        em.getTransaction().begin();
 
         Student student = em.find(Student.class, studentId);
         Dorm dorm = em.find(Dorm.class, dormName);
 
-        if (student != null && dorm != null && dorm.getStudent().size() < dorm.getCapacity() && student.getGender().equals(dorm.getGender())) {
-            em.getTransaction().begin();
+        if (student != null && dorm != null && dorm.getStudents().size() < dorm.getCapacity()) {
             student.setDorm(dorm);
-            em.getTransaction().commit();
+            dorm.getStudents().add(student);
+            em.persist(student);
+            em.persist(dorm);
         }
+
+        em.getTransaction().commit();
+        em.close();
+    }
+
+    public void displayAll() {
+        EntityManager em = emf.createEntityManager();
+        List<Dorm> dorms = em.createQuery("SELECT d FROM Dorm d ORDER BY d.name", Dorm.class).getResultList();
+
+        for (Dorm dorm : dorms) {
+            System.out.println(dorm);
+            dorm.getStudents().stream()
+                .sorted(Comparator.comparing(Student::getName))
+                .forEach(student -> System.out.println(student));
+        }
+        em.close();
     }
 }

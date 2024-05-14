@@ -5,69 +5,71 @@ import javax.persistence.OneToMany;
 import javax.persistence.Column;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.*;
+
 
 /**
  * 12S22029 - Jeremy Samosir
  * 12S22019 - Liony Tamara Lewinsky
  */
 
- @Entity
- @Table (name = "dorms")
+
+
+@Entity
 public class Dorm {
-    @Column (name = "name", nullable = false, length = 200)
+    @Id
     private String name;
-    @Column (name = "gender", nullable = false, length = 10)
+    private int capacity;
     private String gender;
-    @Column (name = "capacity", nullable = false, length = 10)
-    private Integer capacity;
-    
-    @OneToMany(mappedBy = "dorm")
+
+    @OneToMany(mappedBy = "dorm", cascade = CascadeType.ALL)
     private List<Student> students;
 
-    public Dorm(){
-        //empty
+
+    public Dorm() {
+
     }
 
-    public Dorm(String name, String gender, Integer capacity, List<Student> students) {
+    public Dorm(String name, int capacity, String gender) {
         this.name = name;
-        this.gender = gender;
         this.capacity = capacity;
-        this.students = students;
+        this.gender = gender;
     }
 
     public String getName() {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
     public String getGender() {
         return gender;
     }
 
-    public Integer getCapacity(){
-        return capacity;
-    }
-
-    public List<Student> getStudent(){
-        return students;
-    }
-
-    public void setName(String Name) {
-        this.name = name;
-    }
-    
-    public void setGender(String gender){
+    public void setGender(String gender) {
         this.gender = gender;
     }
 
-    public void setCapacity(Integer capacity){
-        this.capacity = capacity;
+    public List<Student> getStudents() {
+        return students;
     }
 
-    public void setStudents(List <Student> students){
+    public void setStudents(List<Student> students) {
         this.students = students;
     }
+
     @Override
     public String toString() {
-        return this.name + " | " + this.gender + " | " + this.capacity + "|" + this.students;
+        return name + "|" + gender + "|" + capacity + "|" + (students != null ? students.size() : 0);
     }
 }

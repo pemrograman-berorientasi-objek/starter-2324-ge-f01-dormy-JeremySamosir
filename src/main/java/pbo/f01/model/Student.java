@@ -8,79 +8,72 @@ import javax.persistence.Column;
  * 12S22029 - Jeremy Samosir
  * 12S22019 - Liony Tamara Lewinsky
  */
+import javax.persistence.*;
 
 @Entity
-@Table (name = "students")
 public class Student {
-    @Column(name = "id", nullable = false, length = 10)
+    @Id
     private String id;
-    @Column(name = "name", nullable = false, length = 200)
     private String name;
-    @Column(name = "gender", nullable = false, length = 10)
+    private int entranceYear;
     private String gender;
-    @Column(name = "year", nullable = false, length = 7)
-    private Integer year;
 
     @ManyToOne
     @JoinColumn(name = "dorm_name")
     private Dorm dorm;
 
-    public Student(){
-        //empty
-    }
+    // Constructors, getters, setters, and toString methods
+    public Student() {}
 
-
-    public Student(String id, String name, String gender, Integer year) {
+    public Student(String id, String name, int entranceYear, String gender) {
         this.id = id;
         this.name = name;
+        this.entranceYear = entranceYear;
         this.gender = gender;
-        this.year = year;
     }
 
     public String getId() {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getEntranceYear() {
+        return entranceYear;
+    }
+
+    public void setEntranceYear(int entranceYear) {
+        this.entranceYear = entranceYear;
     }
 
     public String getGender() {
         return gender;
     }
 
-    public Integer getYear(){
-        return year;
-    }
-
-    public Dorm dorm(){
-        return dorm;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public void setName(String Name) {
-        this.name = name;
-    }
-    
-    public void setGender(String gender){
+    public void setGender(String gender) {
         this.gender = gender;
     }
 
-    public void setYear(Integer year){
-        this.year = year;
+    public Dorm getDorm() {
+        return dorm;
     }
 
-    
     public void setDorm(Dorm dorm) {
         this.dorm = dorm;
     }
 
     @Override
     public String toString() {
-        return this.id + " | " + this.name + " | " + this.gender + " | " + this.year;
+        return id + "|" + name + "|" + entranceYear;
     }
-
 }
